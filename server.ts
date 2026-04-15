@@ -134,6 +134,17 @@ async function startServer() {
     res.json(newLog);
   });
 
+  app.get("/api/agents/:id/logs", async (req, res) => {
+    const { id } = req.params;
+    const logs = [
+      { timestamp: new Date().toISOString(), action: "Scanning network segment", status: "Success", details: `Agent ${id} completed segment scan.` },
+      { timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), action: "Analyzing packet headers", status: "Success", details: "No anomalies detected." },
+      { timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), action: "Updating threat signatures", status: "Success", details: "Signatures synchronized with global DB." },
+      { timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), action: "Self-diagnostic check", status: "Success", details: "All systems operational." },
+    ];
+    res.json(logs);
+  });
+
   app.get("/api/charts/scada-health", (req, res) => {
     const assets = ["FPSO_P93", "REPLAN", "REDUC", "P-93"];
     const hours = Array.from({ length: 24 }, (_, i) => {

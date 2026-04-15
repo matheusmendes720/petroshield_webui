@@ -22,6 +22,7 @@ import { Terminal } from './components/Terminal';
 import { ThreatTrendChart, SavingsChart, ScadaHealthChart } from './components/DashboardCharts';
 import { Radar } from './components/Radar';
 import { ThreatMap } from './components/ThreatMap';
+import { AgentDetailModal } from './components/AgentDetailModal';
 import { cn } from './lib/utils';
 
 type Page = 'ops' | 'map' | 'dlp' | 'profit' | 'eval';
@@ -29,6 +30,7 @@ type Page = 'ops' | 'map' | 'dlp' | 'profit' | 'eval';
 export default function App() {
   const [activePage, setActivePage] = useState<Page>('ops');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [stats, setStats] = useState({
     threatsBlocked: 1248,
     dataSaves: '4.2 TB',
@@ -407,13 +409,19 @@ export default function App() {
                         { label: 'NETWORK_SCAN_02', status: 'Learning', score: 0.85 },
                         { label: 'AUTH_SENTRY_09', status: 'Optimal', score: 0.97 },
                       ].map((agent, i) => (
-                        <div key={i} className="p-4 rounded-lg bg-white/3 border border-white/5">
+                        <motion.div 
+                          key={i} 
+                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedAgent(agent)}
+                          className="p-4 rounded-lg bg-white/3 border border-white/5 cursor-pointer transition-all"
+                        >
                           <p className="text-[9px] font-mono text-white/40 mb-1">{agent.label}</p>
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-white">{agent.status}</span>
                             <span className="text-xs text-accent-cyan font-mono">{(agent.score * 100).toFixed(0)}%</span>
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                   </div>
@@ -422,6 +430,12 @@ export default function App() {
             </AnimatePresence>
           </main>
         </div>
+
+        {/* Global Modal */}
+        <AgentDetailModal 
+          agent={selectedAgent} 
+          onClose={() => setSelectedAgent(null)} 
+        />
       </div>
     </div>
   );
