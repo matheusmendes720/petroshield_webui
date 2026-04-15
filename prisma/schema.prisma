@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model XrDevice {
+  id                  String   @id @default(cuid())
+  deviceType          String   // HoloLens2, RealWear, MetaQuest3
+  assetTag            String   @unique
+  facilityZone        String   // FPSO_P93, REPLAN, etc.
+  networkSegment      String   // OT_Isolated, IT_Corporate
+  mdmStatus           String   // enrolled, kiosk, compromised
+  lat                 Float
+  lng                 Float
+  vendorId            String?
+  vendor              Vendor?  @relation(fields: [vendorId], references: [id])
+  sessions            AuthSession[]
+  auditLogs           PromptAuditLog[]
+}
+
+model Vendor {
+  id                  String   @id @default(cuid())
+  name                String
+  riskScore           Float    // 0.0 to 100.0
+  riskLevel           String   // LOW, MEDIUM, HIGH, CRITICAL
+  contractValue       Float
+  accessLevel         String   // OT, IT, Data, None
+  xrDevices           XrDevice[]
+  isSuspended         Boolean  @default(false)
+}
+
+model AuthSession {
+  id                  String   @id @default(cuid())
+  deviceId            String
+  device              XrDevice @relation(fields: [deviceId], references: [id])
+  status              String   // approved, pending, revoked
+  authMethod          String   // oauth_device_flow, biometric
+  geoRiskScore        Float
+  expiresAt           DateTime
+  createdAt           DateTime @default(now())
+  auditLogs           PromptAuditLog[]
+}
+
+model PromptAuditLog {
+  id                  String   @id @default(cuid())
+  timestamp           DateTime @default(now())
+  deviceId            String
+  device              XrDevice @relation(fields: [deviceId], references: [id])
+  sessionId           String?
+  session             AuthSession? @relation(fields: [sessionId], references: [id])
+  originalQuery       String
+  sanitizedQuery      String
+  leakPrevented       Boolean
+  redactionCount      Int
+  threatScore         Float    // 0.0 to 1.0
+  action              String   // allowed, blocked, escalated
+  mitreTechnique      String?
+}
+
+model AgentLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  agentId   String
+  action    String
+  status    String
+  evalScore Float    // 0.0 to 1.0
+  details   String?
+}
